@@ -163,15 +163,50 @@ String payload; // current payload of command
 void loop() {
 
   
-  /*
+  
+  
+ // string testcode
+String displaytext="yes oida"; 
+  
+displaytext.toUpperCase();
+  
+  
+for(int j=0;j<displaytext.length();j++)
+{
 
+  int charindex = 26;  // SPACE is default
+  int charnum = (int) displaytext[j];
+  
+  if(charnum >=65  && charnum <=90)
+  {
+     charindex = charnum-65;  
+    
+  }
+  
+  
+
+    
+  
+  Serial.print(displaytext[j]);  
+  Serial.print(" ");
+  Serial.print(charnum);  
+  Serial.print(" ");      
+  Serial.println(charindex);  
+  
+  
+  
+
+  
     erase();
   //setXY testcode
-  for(int y=0; y<7; y++)
+  
+  int charwidth = font_small_lookup[charindex];
+  
+  for(int y=0; y< 8 ; y++)
   {
-   for(int x=0; x<5; x++)
+   for(int x=0; x<charwidth; x++)
    { 
-    if(font_small[0][(y*5)+x]) 
+    if(font_small[charindex][(y*charwidth)+x]) 
     {      
        setXY(x+1,y+1,100,100,0);
     }
@@ -181,32 +216,19 @@ void loop() {
 
 
 
-delay(1000);
-  erase();
+delay(400);
+
+
+}
+
+
   
-  
-    //setXY testcode
-  for(int y=0; y<7; y++)
-  {
-   for(int x=0; x<5; x++)
-   { 
-    if(font_small[1][(y*5)+x]) 
-    {      
-       setXY(x+1,y+1,100,100,0);
-    }
-   }
-  }  
-   leds.show();
-
-
-
-delay(1000);
 
 
   
   
   return;
-  */
+  
   
   
   
@@ -322,12 +344,12 @@ if(Serial1.available())
 
        for(int i=0;i<animcounter;i++)
        {
-         Serial1.print("+ ");
+         Serial1.print("+list:");
          Serial1.println(animation_list[i]);
        }
 
 
-       Serial1.println("- DONE");
+       Serial1.println("-list");
       }
       
     }
@@ -369,9 +391,9 @@ if(Serial1.available())
       
       
       
-      Serial1.print("+ ANIMATION SET TO: ");
-      Serial1.println(animation);
-      Serial1.println("- DONE");     
+      Serial1.println("-anim");
+      //Serial1.println(animation);
+      //Serial1.println("- DONE");     
       
       
       fixed_anim_playing=1;
