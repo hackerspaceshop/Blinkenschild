@@ -163,74 +163,15 @@ String payload; // current payload of command
 void loop() {
 
   
-  
-  
- // string testcode
-String displaytext="yes oida"; 
-  
-displaytext.toUpperCase();
-  
-  
-for(int j=0;j<displaytext.length();j++)
-{
-
-  int charindex = 26;  // SPACE is default
-  int charnum = (int) displaytext[j];
-  
-  if(charnum >=65  && charnum <=90)
-  {
-     charindex = charnum-65;  
-    
-  }
-  
-  
-
-    
-  
-  Serial.print(displaytext[j]);  
-  Serial.print(" ");
-  Serial.print(charnum);  
-  Serial.print(" ");      
-  Serial.println(charindex);  
+  String hurra="wtf";
   
   
   
-
-  
-    erase();
-  //setXY testcode
-  
-  int charwidth = font_small_lookup[charindex];
-  
-  for(int y=0; y< 8 ; y++)
-  {
-   for(int x=0; x<charwidth; x++)
-   { 
-    if(font_small[charindex][(y*charwidth)+x]) 
-    {      
-       setXY(x+1,y+1,100,100,0);
-    }
-   }
-  }  
-   leds.show();
-
-
-
-delay(400);
-
-
-}
-
-
-  
-
-
-  
+  drawText(hurra,0,0);
+  drawText(hurra,0,8);
+  drawText(hurra,0,16);
   
   return;
-  
-  
-  
   
   
   
@@ -658,5 +599,111 @@ void erase()
   for(int i=0;i<total_leds;i++)
     leds.setPixel(i,0);
 }
+
+
+
+
+
+
+
+
+void drawText(String displaytext,int offset_x, int offset_y)
+{
+ 
+  
+ // string testcode
+// displaytext="abc xx"; 
+  
+displaytext.toUpperCase();
+  
+  
+  
+//int offset_x=0;  
+//int offset_y=0;    
+
+int stringwidth=0;
+  
+for(int j=0;j<displaytext.length();j++)
+{
+
+  int charindex = 26;  // SPACE is default
+  int charnum = (int) displaytext[j];
+  
+  if(charnum >=65  && charnum <=90)
+  {
+     charindex = charnum-65;  
+  }
+  
+
+  int charwidth = font_small_lookup[charindex];
+   
+  
+  
+
+    
+  
+ // Serial.print(displaytext[j]);  
+ // Serial.print(" ");
+//  Serial.print(charnum);  
+//  Serial.print(" ");      
+//  Serial.println(charindex);  
+  
+  
+  
+
+  
+  //  erase();
+  //setXY testcode
+  
+
+  for(int y=0; y< 8 ; y++)
+  {
+   for(int x=0; x<charwidth; x++)
+   { 
+    if(font_small[charindex][(y*charwidth)+x]) 
+    {      
+       setXY(x+1+offset_x,y+1+offset_y,100,100,0);
+    }
+   }
+  }  
+  
+  
+  stringwidth = stringwidth + charwidth+1;
+  offset_x=stringwidth; 
+  
+  
+   leds.show();
+
+ 
+
+
+
+
+//delay(400);
+
+
+}
+
+
+  
+
+
+  
+  
+  return;
+  
+  
+   
+  
+}
+
+
+
+
+
+
+
+
+
 
 
