@@ -38,10 +38,18 @@
             <!--android:layout_weight="1"-->
             <!--android:layout_gravity="bottom"-->
         <!--/>-->
-        <Button android:id="@+id/button_send"
+        <Button android:id="@+id/button_text"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="@string/send"
+            android:text="Set Text"
+            android:layout_weight="1"
+        />
+
+        <Button android:id="@+id/button_color"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Set Colors"
+            android:layout_weight="1"
         />
 
         <!--<Button android:id="@+id/button_send_debug"-->

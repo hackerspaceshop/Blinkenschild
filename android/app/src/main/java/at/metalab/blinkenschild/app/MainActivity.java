@@ -22,6 +22,7 @@ package at.metalab.blinkenschild.app;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
@@ -89,7 +90,10 @@ public class MainActivity extends ActionBarActivity {
 
     private int currentAnimation = -1;
     private String currentText = null;
-    private String currentTextColor = null;
+    private int currentTextColor = 0;
+    private int currentOutlineColor = 0;
+
+    private Dialog dialogText = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -163,23 +167,19 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
-        // Initialize the compose field with a listener for the return key
-//        mOutEditText = (EditText) findViewById(R.id.edit_text_out);
-//        mOutEditText.setOnEditorActionListener(mWriteListener);
-
         // Initialize the send button with a listener that for click events
-        mSendButton = (Button) findViewById(R.id.button_send);
+        mSendButton = (Button) findViewById(R.id.button_text);
         mSendButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 showTextDialog();
             }
         });
-//        mSendDebugButton = (Button) findViewById(R.id.button_send_debug);
-//        mSendDebugButton.setOnClickListener(new View.OnClickListener() {
-//            public void onClick(View v) {
-//                showDebugDialog();
-//            }
-//        });
+
+        ((Button) findViewById(R.id.button_color)).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                showColorDialog();
+            }
+        });
 
         // Initialize the BluetoothChatService to perform bluetooth connections
         mChatService = new BluetoothChatService(this, mHandler);
@@ -397,14 +397,30 @@ public class MainActivity extends ActionBarActivity {
 
         View v = inflater.inflate(R.layout.dialog_text, null);
         final EditText txt = (EditText) v.findViewById(R.id.editText);
-        final EditText txtColor = (EditText) v.findViewById(R.id.txtTextColor);
-
         if (currentText != null) txt.setText(currentText);
-        if (currentTextColor != null) txtColor.setText(currentTextColor);
-
+        txt.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                Log.v(TAG, "key event: " + keyCode);
+                if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+                        (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                    // Perform action on key press
+                    String text = txt.getText().toString();
+                    if (text != null && !text.equals(currentText)) {
+                        sendBTMessage(BlinkenSchildCommands.setText(txt.getText().toString()));
+                        currentText = text;
+                    }
+                    if (dialogText != null) {
+                        dialogText.dismiss();
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
         builder.setView(v)
                 .setTitle("Custom Text")
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Set Text", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
                         // Set Text Command
@@ -412,12 +428,6 @@ public class MainActivity extends ActionBarActivity {
                         if (text != null && !text.equals(currentText)) {
                             sendBTMessage(BlinkenSchildCommands.setText(text));
                             currentText = text;
-                        }
-
-                        String textColor = txtColor.getText().toString();
-                        if (textColor != null && !textColor.equals(currentTextColor) && textColor.length() > 0) {
-                            sendBTMessage(BlinkenSchildCommands.setTextColor(textColor));
-                            currentTextColor = textColor;
                         }
                     }
                 })
@@ -427,6 +437,55 @@ public class MainActivity extends ActionBarActivity {
                     }
                 });
 
+        dialogText = builder.create();
+        dialogText.show();
+    }
+
+    private void showColorDialog() {
+        LayoutInflater inflater = getLayoutInflater();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        View v = inflater.inflate(R.layout.dialog_color, null);
+        final Button btnColorPicker = (Button) v.findViewById(R.id.buttonPickTextColor);
+        btnColorPicker.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new ColorPickerDialog(MainActivity.this, new ColorPickerDialog.OnColorChangedListener() {
+                    @Override
+                    public void colorChanged(int color) {
+                        Log.v(TAG, "color changed to " + color);
+                        int blue = color & 255;
+                        int green = color >> 8 & 255;
+                        int red = color >> 16 & 255;
+                        sendBTMessage(BlinkenSchildCommands.setTextColor(red + "," + green + "," + blue));
+                        currentTextColor = color;
+                    }
+                }, currentTextColor).show();
+            }
+        });
+
+        final Button btnOutlineColorPicker = (Button) v.findViewById(R.id.buttonPickOutlineColor);
+        btnOutlineColorPicker.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new ColorPickerDialog(MainActivity.this, new ColorPickerDialog.OnColorChangedListener() {
+                    @Override
+                    public void colorChanged(int color) {
+                        Log.v(TAG, "color changed to " + color);
+                        int blue = color & 255;
+                        int green = color >> 8 & 255;
+                        int red = color >> 16 & 255;
+                        sendBTMessage(BlinkenSchildCommands.setOutlineColor(red + "," + green + "," + blue));
+                        currentOutlineColor = color;
+                    }
+                }, currentOutlineColor).show();
+            }
+        });
+
+        builder.setView(v)
+                .setTitle("Text Colors")
+                .setPositiveButton("Done", null);
         builder.create().show();
+
     }
 }

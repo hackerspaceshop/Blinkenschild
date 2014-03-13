@@ -308,6 +308,9 @@ public class BluetoothChatService {
                 } catch (IOException e) {
                     Log.e(TAG, "Socket Type: " + mSocketType + "accept() failed", e);
                     break;
+                } catch (NullPointerException e) {
+                    Log.e(TAG, "NullPointer on ServerSocket");
+                    break;
                 }
 
                 // If a connection was accepted
@@ -343,6 +346,8 @@ public class BluetoothChatService {
                 mmServerSocket.close();
             } catch (IOException e) {
                 Log.e(TAG, "Socket Type" + mSocketType + "close() of server failed", e);
+            } catch (NullPointerException e) {
+                Log.e(TAG, "NullPointerException!");
             }
         }
     }

@@ -29,6 +29,7 @@ public class BlinkenSchildCommands {
     public final static String COMMAND_SET_ANIMATION = "+anim:%s";
     public final static String COMMAND_SET_TEXT = "+text:%s";
     public final static String COMMAND_SET_TEXTCOLOR = "+text-color:%s";
+    public final static String COMMAND_SET_OUTLINECOLOR = "+outline-color:%s";
 
     public static String setAnimation(String filename) {
         return String.format(COMMAND_SET_ANIMATION, filename);
@@ -40,5 +41,9 @@ public class BlinkenSchildCommands {
 
     public static String setTextColor(String textColor) {
         return String.format(COMMAND_SET_TEXTCOLOR, textColor);
+    }
+
+    public static String setOutlineColor(String outlineColor) {
+        return String.format(COMMAND_SET_OUTLINECOLOR, outlineColor);
     }
 }

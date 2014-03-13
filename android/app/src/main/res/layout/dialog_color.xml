@@ -19,24 +19,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:weightSum="1"
-    android:paddingTop="20dp"
-    android:paddingBottom="20dp"
-    android:paddingLeft="40dp"
-    android:paddingRight="40dp">
+    android:padding="10dp">
 
-    <!--<TextView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:textAppearance="?android:attr/textAppearanceLarge"-->
-        <!--android:text="Custom Text:"-->
-        <!--android:id="@+id/textView" />-->
-
-    <EditText
-        android:layout_width="match_parent"
+    <Button
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editText"
-        android:layout_gravity="center_horizontal"
-        android:singleLine="true"
-        android:layout_weight="0.04" />
+        android:text="Text Color"
+        android:layout_marginRight="10dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
+        android:id="@+id/buttonPickTextColor" />
+
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
+        android:text="Outline Color"
+        android:layout_marginRight="10dp"
+        android:id="@+id/buttonPickOutlineColor" />
 
 </LinearLayout>
