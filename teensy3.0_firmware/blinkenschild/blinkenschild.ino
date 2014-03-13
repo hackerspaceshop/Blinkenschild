@@ -152,16 +152,16 @@ return;
 
 int delim = 0xD; // newline
 int inchar; // current char read
-int cmd; // current command over bluetooth
+String cmd; // current command over bluetooth
 String payload; // current payload of command
-
+String textoverlay ="";
 
 
 
 
 
 void loop() {
-
+/*
   
   String hurra="wtf";
   
@@ -173,7 +173,7 @@ void loop() {
   
   return;
   
-  
+ */ 
   
  
   /*
@@ -226,6 +226,9 @@ t:text
 
 
 
+
+
+
 if(Serial1.available())
 {
   
@@ -247,27 +250,31 @@ if(Serial1.available())
  while(Serial1.available())
  {
   inchar=  Serial1.read(); 
-  // ENTER auf screen = 0xD  
-  
-  
+
   Serial.print("0x");;  
   Serial.print(inchar,HEX);
   Serial.print(" ");   
   
   
-  if(inchar ==0xD)
+  
+  //  CR LF, ...
+  if((inchar == 0xD) || (inchar == 0xA) )
   {
     Serial.print("got a line: ");
     Serial.println(bluestring);
     
-    cmd=bluestring[0];
-    payload=bluestring.substring(2,bluestring.length());
+    
+    
+    
+    cmd=bluestring.substring(0,bluestring.indexOf(":"));
+  
+    payload=bluestring.substring(bluestring.indexOf(":")+1);
     
     
   
 
     Serial.print("instruction: ");
-    Serial.println(cmd,HEX);
+    Serial.println(cmd);
     
 
    // Serial.print("payload: ");
@@ -275,13 +282,12 @@ if(Serial1.available())
 
 
 
-    if(cmd == 0x63)  // c (command)
+    if(cmd == "+list")  // c (command)
     {
       Serial.println("command");
-      Serial.println(payload);  
-      if(payload=="list")
-      {
-       Serial.println("Listing files on card"); 
+      Serial.println(payload); 
+      
+      Serial.println("Listing files on card"); 
 
        for(int i=0;i<animcounter;i++)
        {
@@ -290,24 +296,31 @@ if(Serial1.available())
        }
 
 
-       Serial1.println("-list");
-      }
-      
+       Serial1.println("-list"); 
     }
 
 
     
-    if(cmd == 0x74)  // t
+    if(cmd == "+text")  // t
     {
-      Serial.println("we got text (1 line)");
+      Serial.println("we got text");
       Serial.println(payload);      
      // TODO is there a special char (;) in the text? then we would linewrap  an set multiple text values..
+     
+     textoverlay=payload;
+     
+     drawText(payload,0,0);
+     
+     
+     
+     
+     
     }
     
     
   
             
-    if(cmd == 0x61) // "a"
+    if(cmd == "+anim") // "a"
     {
       
       
@@ -447,6 +460,13 @@ if(Serial1.available())
 
 
 
+if(textoverlay !="" ) 
+{
+ drawText(textoverlay,0,0);  
+}
+
+
+
 
        leds.show();  
       // delay(10000);
@@ -472,6 +492,13 @@ if(Serial1.available())
     delay(1000);
   }
   
+
+
+
+
+
+
+
 
     
 return;
@@ -662,7 +689,7 @@ for(int j=0;j<displaytext.length();j++)
    { 
     if(font_small[charindex][(y*charwidth)+x]) 
     {      
-       setXY(x+1+offset_x,y+1+offset_y,100,100,0);
+       setXY(x+1+offset_x,y+1+offset_y,0,0,0);
     }
    }
   }  
@@ -672,7 +699,7 @@ for(int j=0;j<displaytext.length();j++)
   offset_x=stringwidth; 
   
   
-   leds.show();
+  // leds.show();
 
  
 
