@@ -157,7 +157,10 @@ String payload; // current payload of command
 String textoverlay ="";
 
 
-
+// global for font color
+int text_r=0;
+int text_g=0;
+int text_b=0;
 
 
 void loop() {
@@ -267,9 +270,8 @@ if(Serial1.available())
     
     
     cmd=bluestring.substring(0,bluestring.indexOf(":"));
-  
     payload=bluestring.substring(bluestring.indexOf(":")+1);
-    
+    bluestring=bluestring.substring(cmd.length() + payload.length() + 2);
     
   
 
@@ -312,10 +314,22 @@ if(Serial1.available())
      drawText(payload,0,0);
      
      
-     
+    }
+    
+    
+    
+    
+    
+        if(cmd == "+text-color")  // t
+    {
+      Serial.println("text-color");
+      Serial.println(payload);      
+
+     drawText(payload,0,0);
      
      
     }
+    
     
     
   
@@ -359,7 +373,7 @@ if(Serial1.available())
             
     
     
-    bluestring="";
+    //bluestring="";
   
   } // end of line
   else // middle of line append
@@ -462,7 +476,7 @@ if(Serial1.available())
 
 if(textoverlay !="" ) 
 {
- drawText(textoverlay,0,0);  
+ drawText(textoverlay,1,8);  
 }
 
 
@@ -689,14 +703,14 @@ for(int j=0;j<displaytext.length();j++)
    { 
     if(font_small[charindex][(y*charwidth)+x]) 
     {      
-       setXY(x+1+offset_x,y+1+offset_y,0,0,0);
+       setXY(x+1+offset_x+stringwidth,y+1+offset_y,text_r,text_g,text_b);
     }
    }
   }  
   
   
   stringwidth = stringwidth + charwidth+1;
-  offset_x=stringwidth; 
+  //offset_x=offset_x+stringwidth; 
   
   
   // leds.show();
