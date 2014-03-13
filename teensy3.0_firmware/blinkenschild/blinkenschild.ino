@@ -19,7 +19,7 @@ int current_animation_index=0;
 
 // names of the animation file
 String bluestring= "";   // bluetooth receive
-char animation[13];   // used for SD open
+char animation[13]="0";   // used for SD open
 
 
 // is a fixed animation playing? choosen over BT ?
@@ -154,8 +154,9 @@ int delim = 0xD; // newline
 int inchar; // current char read
 String cmd; // current command over bluetooth
 String payload; // current payload of command
-String textoverlay ="";
-
+String textoverlay1 ="";
+String textoverlay2 ="";
+String textoverlay3 ="";
 
 // global for font color
 int text_r=0;
@@ -178,8 +179,8 @@ void loop() {
   
  */ 
   
- 
-  /*
+ /*
+  
  // TESTCODE for serial
   
 // 0x01  head of frame..
@@ -209,10 +210,9 @@ void loop() {
 
  return;
 
-*/
 
-  
-  
+
+  */
   
 
   
@@ -309,9 +309,47 @@ if(Serial1.available())
       Serial.println(payload);      
      // TODO is there a special char (;) in the text? then we would linewrap  an set multiple text values..
      
-     textoverlay=payload;
      
-     drawText(payload,0,0);
+     if(payload.indexOf(",") != -1)
+     {
+       textoverlay1=payload.substring(0,payload.indexOf(";"));
+   
+   
+   
+   
+   
+   
+       if(payload.indexOf(",", (payload.indexOf(",")+1)) != -1) 
+       {
+         textoverlay2=payload.substring(payload.indexOf(",")+1, payload.indexOf(",", (payload.indexOf(",")+1)) );
+         textoverlay3=payload.substring(payload.lastIndexOf(",")+1);
+       }  
+       else
+       {
+         textoverlay3=payload.substring(payload.indexOf(",")+1);
+         textoverlay2="";
+         
+         
+       }
+     }
+     else
+     {
+      textoverlay2=payload;
+      
+      textoverlay1="";
+      textoverlay3="";
+     }
+  
+     
+     
+
+     
+     
+     
+     
+     
+     
+    
      
      
     }
@@ -320,14 +358,29 @@ if(Serial1.available())
     
     
     
-        if(cmd == "+text-color")  // t
+    if(cmd == "+text-color")  // t
     {
       Serial.println("text-color");
       Serial.println(payload);      
-
-     drawText(payload,0,0);
+     text_g=payload.substring(0,payload.indexOf(",")).toInt();   
+   
+   
+   
+     
+     text_r=payload.substring(payload.indexOf(",")+1,payload.lastIndexOf(",")).toInt(); 
+  
+  
+     
+     text_b=payload.substring(payload.lastIndexOf(",")+1).toInt();         
      
      
+     
+     Serial.print("R: ");
+     Serial.print(text_r); 
+      Serial.print(" G: ");
+     Serial.print(text_g); 
+      Serial.print(" B: ");
+     Serial.println(text_b);     
     }
     
     
@@ -430,7 +483,8 @@ if(Serial1.available())
   }  
       
     */  
-  
+  if(animation != 0)
+  {
     
   sdfile = SD.open(animation); // hier muss i hin
   
@@ -474,10 +528,24 @@ if(Serial1.available())
 
 
 
-if(textoverlay !="" ) 
+if(textoverlay1 !="" ) 
 {
- drawText(textoverlay,1,8);  
+ drawText(textoverlay1,0);  
 }
+
+
+if(textoverlay2 !="" ) 
+{
+ drawText(textoverlay2,8);  
+}
+
+
+
+if(textoverlay3 !="" ) 
+{
+ drawText(textoverlay3,16);  
+}
+
 
 
 
@@ -499,6 +567,12 @@ if(textoverlay !="" )
     Serial.print("Closed file : ");
     Serial.println(animation);
 
+
+
+
+  } // if animation != ""
+  
+  
 } else {
      // if the file didn't open, print an error:
     Serial.print("error opening file:");
@@ -648,15 +722,18 @@ void erase()
 
 
 
-void drawText(String displaytext,int offset_x, int offset_y)
+void drawText(String displaytext, int offset_y)
 {
  
+  
+  int offset_x=0;
   
  // string testcode
 // displaytext="abc xx"; 
   
 displaytext.toUpperCase();
   
+ 
   
   
 //int offset_x=0;  
@@ -664,6 +741,8 @@ displaytext.toUpperCase();
 
 int stringwidth=0;
   
+  
+// find total stringlength  
 for(int j=0;j<displaytext.length();j++)
 {
 
@@ -677,10 +756,34 @@ for(int j=0;j<displaytext.length();j++)
   
 
   int charwidth = font_small_lookup[charindex];
+  stringwidth = stringwidth + charwidth+1;
+  offset_x =(40-stringwidth)/2;
    
   
+}  
+
+    
+    stringwidth =0;
+    
+    
+    //  render tht text
+    
+ for(int j=0;j<displaytext.length();j++)
+{
+
+  int charindex = 26;  // SPACE is default
+  int charnum = (int) displaytext[j];
+  
+  if(charnum >=65  && charnum <=90)
+  {
+     charindex = charnum-65;  
+  }
   
 
+  int charwidth = font_small_lookup[charindex];
+
+       
+    
     
   
  // Serial.print(displaytext[j]);  
