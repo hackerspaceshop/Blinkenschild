@@ -1,0 +1,24 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:yourapp="http://schemas.android.com/apk/res-auto">
+
+<item android:id="@+id/secure_connect_scan"
+        android:icon="@drawable/ic_menu_search"
+        android:title="@string/secure_connect"
+        android:showAsAction="always"
+        yourapp:showAsAction="always" />
+
+    <!--<item android:id="@+id/insecure_connect_scan"-->
+        <!--android:icon="@android:drawable/ic_menu_search"-->
+        <!--android:title="@string/insecure_connect"-->
+        <!--android:showAsAction="ifRoom|withText" />-->
+
+    <!--<item android:id="@+id/discoverable"-->
+        <!--android:icon="@android:drawable/ic_menu_mylocation"-->
+        <!--android:title="@string/discoverable"-->
+        <!--android:showAsAction="ifRoom|withText" />-->
+
+    <!--<item android:id="@+id/action_settings"-->
+        <!--android:title="@string/action_settings"-->
+        <!--android:orderInCategory="100"-->
+        <!--app:showAsAction="never" />-->
+</menu>
