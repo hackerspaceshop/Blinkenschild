@@ -30,17 +30,24 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="4dp"
         >
-        <EditText android:id="@+id/edit_text_out"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_gravity="bottom"
-        />
+        <!--<EditText android:id="@+id/edit_text_out"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_weight="1"-->
+            <!--android:layout_gravity="bottom"-->
+        <!--/>-->
         <Button android:id="@+id/button_send"
-            android:layout_width="wrap_content"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/send"
         />
+
+        <!--<Button android:id="@+id/button_send_debug"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:text="@string/send_debug"-->
+        <!--/>-->
     </LinearLayout>
 </LinearLayout>

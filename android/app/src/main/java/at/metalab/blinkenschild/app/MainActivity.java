@@ -1,18 +1,18 @@
 /**
- * This file is part of the BlinkenSchild Android app.
+ * This file is part of the BlinkenSchildCommands Android app.
  *
- * The BlinkenSchild Android app is free software: you can redistribute
+ * The BlinkenSchildCommands Android app is free software: you can redistribute
  * it and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * The BlinkenSchild Android app is distributed in the hope that it will
+ * The BlinkenSchildCommands Android app is distributed in the hope that it will
  * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with the BlinkenSchild Android app. If not, see
+ * along with the BlinkenSchildCommands Android app. If not, see
  * <http://www.gnu.org/licenses/>.
  *
  * Created by Chris Hager, March 2014
@@ -21,8 +21,10 @@ package at.metalab.blinkenschild.app;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
@@ -30,6 +32,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -67,7 +70,7 @@ public class MainActivity extends ActionBarActivity {
 
     // Layout Views
     private ListView mConversationView;
-    private EditText mOutEditText;
+//    private EditText mOutEditText;
     private Button mSendButton;
 
     private boolean isFirstStart = true;
@@ -82,7 +85,11 @@ public class MainActivity extends ActionBarActivity {
     private BluetoothAdapter mBluetoothAdapter = null;
     // Member object for the chat services
     private BluetoothChatService mChatService = null;
+    private Button mSendDebugButton;
 
+    private int currentAnimation = -1;
+    private String currentText = null;
+    private String currentTextColor = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -151,24 +158,28 @@ public class MainActivity extends ActionBarActivity {
         mConversationView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String s = mConversationArrayAdapter.getItem(position).substring(11);
-                sendBTMessage("a:" + s);
+                String fn = mConversationArrayAdapter.getItem(position).substring(11);
+                sendBTMessage(BlinkenSchildCommands.setAnimation(fn));
             }
         });
+
         // Initialize the compose field with a listener for the return key
-        mOutEditText = (EditText) findViewById(R.id.edit_text_out);
-        mOutEditText.setOnEditorActionListener(mWriteListener);
+//        mOutEditText = (EditText) findViewById(R.id.edit_text_out);
+//        mOutEditText.setOnEditorActionListener(mWriteListener);
 
         // Initialize the send button with a listener that for click events
         mSendButton = (Button) findViewById(R.id.button_send);
         mSendButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Send a message using content of the edit text widget
-                TextView view = (TextView) findViewById(R.id.edit_text_out);
-                String message = view.getText().toString();
-                sendBTMessage(message);
+                showTextDialog();
             }
         });
+//        mSendDebugButton = (Button) findViewById(R.id.button_send_debug);
+//        mSendDebugButton.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//                showDebugDialog();
+//            }
+//        });
 
         // Initialize the BluetoothChatService to perform bluetooth connections
         mChatService = new BluetoothChatService(this, mHandler);
@@ -228,7 +239,6 @@ public class MainActivity extends ActionBarActivity {
 
             // Reset out string buffer to zero and clear the edit text field
             mOutStringBuffer.setLength(0);
-            mOutEditText.setText("");
         }
     }
 
@@ -267,8 +277,8 @@ public class MainActivity extends ActionBarActivity {
                         case BluetoothChatService.STATE_CONNECTED:
                             setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
                             mConversationArrayAdapter.clear();
-                            sendBTMessage(BlinkenSchild.COMMAND_NOOP);
-                            sendBTMessage(BlinkenSchild.COMMAND_GET_ANIMATIONS);
+                            sendBTMessage(BlinkenSchildCommands.COMMAND_NOOP);
+                            sendBTMessage(BlinkenSchildCommands.COMMAND_GET_ANIMATIONS);
                             break;
                         case BluetoothChatService.STATE_CONNECTING:
                             setStatus(R.string.title_connecting);
@@ -379,5 +389,44 @@ public class MainActivity extends ActionBarActivity {
 //                return true;
         }
         return false;
+    }
+
+    private void showTextDialog() {
+        LayoutInflater inflater = getLayoutInflater();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        View v = inflater.inflate(R.layout.dialog_text, null);
+        final EditText txt = (EditText) v.findViewById(R.id.editText);
+        final EditText txtColor = (EditText) v.findViewById(R.id.txtTextColor);
+
+        if (currentText != null) txt.setText(currentText);
+        if (currentTextColor != null) txtColor.setText(currentTextColor);
+
+        builder.setView(v)
+                .setTitle("Custom Text")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        // Set Text Command
+                        String text = txt.getText().toString();
+                        if (text != null && !text.equals(currentText)) {
+                            sendBTMessage(BlinkenSchildCommands.setText(text));
+                            currentText = text;
+                        }
+
+                        String textColor = txtColor.getText().toString();
+                        if (textColor != null && !textColor.equals(currentTextColor) && textColor.length() > 0) {
+                            sendBTMessage(BlinkenSchildCommands.setTextColor(textColor));
+                            currentTextColor = textColor;
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+
+        builder.create().show();
     }
 }

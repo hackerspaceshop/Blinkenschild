@@ -1,18 +1,18 @@
 /**
- * This file is part of the BlinkenSchild Android app.
+ * This file is part of the BlinkenSchildCommands Android app.
  *
- * The BlinkenSchild Android app is free software: you can redistribute
+ * The BlinkenSchildCommands Android app is free software: you can redistribute
  * it and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * The BlinkenSchild Android app is distributed in the hope that it will
+ * The BlinkenSchildCommands Android app is distributed in the hope that it will
  * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with the BlinkenSchild Android app. If not, see
+ * along with the BlinkenSchildCommands Android app. If not, see
  * <http://www.gnu.org/licenses/>.
  *
  * Created by Chris Hager, March 2014
@@ -488,7 +488,7 @@ public class BluetoothChatService {
         public void write(byte[] buffer) {
             try {
                 mmOutStream.write(buffer);
-                mmOutStream.write(0xD); // BlinkenSchild specific - terminate line with CR
+                mmOutStream.write(0xD); // BlinkenSchildCommands specific - terminate line with CR
 
                 // Share the sent message back to the UI Activity
                 mHandler.obtainMessage(MainActivity.MESSAGE_WRITE, -1, -1, buffer)
