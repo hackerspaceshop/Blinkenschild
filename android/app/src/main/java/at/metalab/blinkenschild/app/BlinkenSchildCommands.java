@@ -20,12 +20,13 @@
 package at.metalab.blinkenschild.app;
 
 /**
- * Created by Chris Hager <chris@linuxuser.at> on 13/03/14.
+ * BlinkenSchildCommands helps building the commands for the
+ * BlinkenSchild Arduino.
  */
 public class BlinkenSchildCommands {
     public final static String COMMAND_NOOP = "x";
-    public final static String COMMAND_GET_ANIMATIONS = "+list";
 
+    public final static String COMMAND_GET_ANIMATIONS = "+list:";
     public final static String COMMAND_SET_ANIMATION = "+anim:%s";
     public final static String COMMAND_SET_TEXT = "+text:%s";
     public final static String COMMAND_SET_TEXTCOLOR = "+text-color:%s";

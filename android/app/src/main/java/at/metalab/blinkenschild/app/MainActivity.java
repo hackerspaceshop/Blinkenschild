@@ -27,10 +27,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -277,6 +277,8 @@ public class MainActivity extends ActionBarActivity {
                         case BluetoothChatService.STATE_CONNECTED:
                             setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
                             mConversationArrayAdapter.clear();
+                            ((Button) findViewById(R.id.button_text)).setEnabled(true);
+                            ((Button) findViewById(R.id.button_color)).setEnabled(true);
                             sendBTMessage(BlinkenSchildCommands.COMMAND_NOOP);
                             sendBTMessage(BlinkenSchildCommands.COMMAND_GET_ANIMATIONS);
                             break;

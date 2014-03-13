@@ -1,44 +1,48 @@
-package at.metalab.blinkenschild.app;
-
 /**
+ * This file is part of the BlinkenSchildCommands Android app.
+ *
+ * The BlinkenSchildCommands Android app is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * The BlinkenSchildCommands Android app is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with the BlinkenSchildCommands Android app. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
  * Created by Chris Hager <chris@linuxuser.at> on 13/03/14.
  */
-/*
- * Copyright (C) 2007 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package at.metalab.blinkenschild.app;
 
-import android.app.ActionBar;
-import android.os.Bundle;
 import android.app.Dialog;
 import android.content.Context;
-import android.graphics.*;
-import android.view.Gravity;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.Shader;
+import android.graphics.SweepGradient;
+import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
 public class ColorPickerDialog extends Dialog {
-
     public interface OnColorChangedListener {
         void colorChanged(int color);
     }
 
     private OnColorChangedListener mListener;
     private int mInitialColor;
+    private ColorPickerView mColorPickerView;
 
     private static class ColorPickerView extends View {
         private Paint mPaint;
@@ -220,11 +224,8 @@ public class ColorPickerDialog extends Dialog {
         }
     }
 
-    public ColorPickerDialog(Context context,
-                             OnColorChangedListener listener,
-                             int initialColor) {
+    public ColorPickerDialog(Context context, OnColorChangedListener listener, int initialColor) {
         super(context);
-
         mListener = listener;
         mInitialColor = initialColor;
     }
@@ -235,15 +236,42 @@ public class ColorPickerDialog extends Dialog {
         OnColorChangedListener l = new OnColorChangedListener() {
             public void colorChanged(int color) {
                 mListener.colorChanged(color);
-                dismiss();
+//                dismiss();
             }
         };
 
-        LinearLayout ll = new LinearLayout(getContext());
-        ll.setPadding(20, 20, 20, 20);
-        ll.setGravity(Gravity.CENTER_HORIZONTAL);
-        ll.addView(new ColorPickerView(getContext(), l, mInitialColor));
-        setContentView(ll);
+        LayoutInflater inflater = getLayoutInflater();
+        View v = inflater.inflate(R.layout.dialog_colorpicker, null);
+
+        LinearLayout ll = (LinearLayout) v.findViewById(R.id.ll1);
+        mColorPickerView = new ColorPickerView(getContext(), l, mInitialColor);
+        ll.addView(mColorPickerView, 0);
+        setContentView(v);
+
+        ((Button) v.findViewById(R.id.button_white)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int color = 255 << 24 | 255 << 16 | 255 << 8 | 255;
+                mListener.colorChanged(color);
+                mColorPickerView.mCenterPaint.setColor(color);
+                mColorPickerView.invalidate();
+            }
+        });
+        ((Button) v.findViewById(R.id.button_black)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int color = 255 << 24;
+                mListener.colorChanged(color);
+                mColorPickerView.mCenterPaint.setColor(color);
+                mColorPickerView.invalidate();
+            }
+        });
+        ((Button) v.findViewById(R.id.button_done)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+            }
+        });
 
         setTitle("Pick a Color");
     }
