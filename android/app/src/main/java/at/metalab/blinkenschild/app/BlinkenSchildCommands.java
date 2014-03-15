@@ -27,10 +27,13 @@ public class BlinkenSchildCommands {
     public final static String COMMAND_NOOP = "x";
 
     public final static String COMMAND_GET_ANIMATIONS = "+list:";
+
     public final static String COMMAND_SET_ANIMATION = "+anim:%s";
     public final static String COMMAND_SET_TEXT = "+text:%s";
     public final static String COMMAND_SET_TEXTCOLOR = "+text-color:%s";
     public final static String COMMAND_SET_OUTLINECOLOR = "+outline-color:%s";
+    public final static String COMMAND_SET_BRIGHTNESS_TEXT = "+text-brightness:%d";
+    public final static String COMMAND_SET_BRIGHTNESS_ANIM = "+anim-brightness:%d";
 
     public static String setAnimation(String filename) {
         return String.format(COMMAND_SET_ANIMATION, filename);
@@ -46,5 +49,21 @@ public class BlinkenSchildCommands {
 
     public static String setOutlineColor(String outlineColor) {
         return String.format(COMMAND_SET_OUTLINECOLOR, outlineColor);
+    }
+
+    /**
+     * Build command to set text brightness.
+     * @param brightness [1..9] (1=100%, 9=10%)
+     */
+    public static String setTextBrightness(int brightness) {
+        return String.format(COMMAND_SET_BRIGHTNESS_TEXT, brightness);
+    }
+
+    /**
+     * Build command to set animation brightness.
+     * @param brightness [1..9] (1=100%, 9=10%)
+     */
+    public static String setAnimationBrightness(int brightness) {
+        return String.format(COMMAND_SET_BRIGHTNESS_ANIM, brightness);
     }
 }

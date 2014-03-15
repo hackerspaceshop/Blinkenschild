@@ -26,4 +26,5 @@
     <string name="insecure_connect">Connect a device - Insecure</string>
     <string name="discoverable">Make discoverable</string>
     <string name="send_debug">Debug Command</string>
+    <string name="btn_set_effects">Colors &amp; Effects</string>
 </resources>

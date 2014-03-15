@@ -41,7 +41,7 @@
         <Button android:id="@+id/button_text"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Set Text"
+            android:text="Text"
             android:enabled="false"
             android:layout_weight="1"
         />
@@ -49,7 +49,7 @@
         <Button android:id="@+id/button_color"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Set Colors"
+            android:text="@string/btn_set_effects"
             android:enabled="false"
             android:layout_weight="1"
         />

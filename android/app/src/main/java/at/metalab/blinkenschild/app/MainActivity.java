@@ -44,6 +44,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -87,13 +88,14 @@ public class MainActivity extends ActionBarActivity {
     // Member object for the chat services
     private BluetoothChatService mChatService = null;
     private Button mSendDebugButton;
+    private Dialog dialogText = null;
 
     private int currentAnimation = -1;
     private String currentText = null;
     private int currentTextColor = 0;
     private int currentOutlineColor = 0;
-
-    private Dialog dialogText = null;
+    private int currentTextBrightness = 9;
+    private int currentAnimBrightness = 9;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -484,8 +486,36 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
+        SeekBar sbText = (SeekBar) v.findViewById(R.id.seekBarText);
+        sbText.setProgress(currentTextBrightness);
+        sbText.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                currentTextBrightness = seekBar.getProgress();
+//                Toast.makeText(MainActivity.this, "Brightness: " + (10 - currentTextBrightness), Toast.LENGTH_SHORT).show();
+                sendBTMessage(BlinkenSchildCommands.setTextBrightness(10 - currentTextBrightness));
+            }
+        });
+
+        SeekBar sbAnim = (SeekBar) v.findViewById(R.id.seekBarAnim);
+        sbAnim.setProgress(currentAnimBrightness);
+        sbAnim.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                currentAnimBrightness = seekBar.getProgress();
+//                Toast.makeText(MainActivity.this, "Anim Progress: " + (10 - currentAnimBrightness), Toast.LENGTH_SHORT).show();
+                sendBTMessage(BlinkenSchildCommands.setTextBrightness(10 - currentAnimBrightness));
+            }
+        });
+
         builder.setView(v)
-                .setTitle("Text Colors")
+                .setTitle("Colors & Effects")
                 .setPositiveButton("Done", null);
         builder.create().show();
 
