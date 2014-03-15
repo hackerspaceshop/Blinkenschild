@@ -1,13 +1,11 @@
 To Do
 -----
 
-* UI update
+* Make the UI look more pretty
 
 
 License
 -------
-
-    This file is part of the BlinkenSchild Android App.
 
     The BlinkenSchild Android App is free software: you can redistribute
     it and/or modify it under the terms of the GNU General Public License
@@ -24,7 +22,8 @@ License
     <http://www.gnu.org/licenses/>.
 
 
-Author
-------
+Authors & Contributors
+----------------------
 
-Chris Hager, March 2014
+* metachris <chris@linuxuser.at>
+* overflo
