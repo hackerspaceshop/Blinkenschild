@@ -159,7 +159,8 @@ public class MainActivity extends ActionBarActivity {
         }
 
         if (isFirstStart) {
-            startDeviceSelectActivity();
+            if (mBluetoothAdapter.isEnabled())
+                startDeviceSelectActivity();
             isFirstStart = false;
         }
     }
