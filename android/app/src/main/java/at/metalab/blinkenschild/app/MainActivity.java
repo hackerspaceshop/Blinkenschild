@@ -1,18 +1,18 @@
 /**
- * This file is part of the BlinkenSchildCommands Android app.
+ * This file is part of the BlinkenSchild Android app.
  *
- * The BlinkenSchildCommands Android app is free software: you can redistribute
+ * The BlinkenSchild Android app is free software: you can redistribute
  * it and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * The BlinkenSchildCommands Android app is distributed in the hope that it will
+ * The BlinkenSchild Android app is distributed in the hope that it will
  * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with the BlinkenSchildCommands Android app. If not, see
+ * along with the BlinkenSchild Android app. If not, see
  * <http://www.gnu.org/licenses/>.
  *
  * Created by Chris Hager, March 2014
@@ -48,6 +48,9 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Collections;
+import java.util.Comparator;
+
 
 public class MainActivity extends ActionBarActivity {
     // Debugging
@@ -79,8 +82,11 @@ public class MainActivity extends ActionBarActivity {
 
     // Name of the connected device
     private String mConnectedDeviceName = null;
+
     // Array adapter for the conversation thread
     private ArrayAdapter<String> mConversationArrayAdapter;
+    private Comparator<String> mConversationArrayAdapterComparator;
+
     // String buffer for outgoing messages
     private StringBuffer mOutStringBuffer;
     // Local Bluetooth adapter
@@ -97,10 +103,14 @@ public class MainActivity extends ActionBarActivity {
     private int currentTextBrightness = 9;
     private int currentAnimBrightness = 9;
 
+    private void log(String s) {
+        if (D) Log.v(TAG, s);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(D) Log.e(TAG, "+++ ON CREATE +++");
+        log("+++ ON CREATE +++");
 
         // Set up the window layout
         setContentView(R.layout.main);
@@ -119,7 +129,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public void onStart() {
         super.onStart();
-        if(D) Log.e(TAG, "++ ON START ++");
+        log("++ ON START ++");
 
         // If BT is not on, request that it be enabled.
         // setupChat() will then be called during onActivityResult
@@ -135,7 +145,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public synchronized void onResume() {
         super.onResume();
-        if(D) Log.e(TAG, "+ ON RESUME +");
+        log("+ ON RESUME +");
 
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
@@ -149,22 +159,29 @@ public class MainActivity extends ActionBarActivity {
         }
 
         if (isFirstStart) {
-//            startDeviceSelectActivity();
+            startDeviceSelectActivity();
             isFirstStart = false;
         }
     }
 
     private void setupChat() {
-        Log.d(TAG, "setupChat()");
+        log("setupChat()");
 
         // Initialize the array adapter for the conversation thread
         mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
+        mConversationArrayAdapterComparator = new Comparator<String>() {
+            @Override
+            public int compare(String lhs, String rhs) {
+                return lhs.compareTo(rhs);
+            }
+        };
+
         mConversationView = (ListView) findViewById(R.id.in);
         mConversationView.setAdapter(mConversationArrayAdapter);
         mConversationView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String fn = mConversationArrayAdapter.getItem(position).substring(11);
+                String fn = mConversationArrayAdapter.getItem(position);
                 sendBTMessage(BlinkenSchildCommands.setAnimation(fn));
             }
         });
@@ -226,6 +243,14 @@ public class MainActivity extends ActionBarActivity {
      */
     private void sendBTMessage(String message) {
         // Check that we're actually connected before trying anything
+        if (message == null) {
+            Log.e(TAG, "sendBTMessage(null) doesnt work");
+            return;
+        }
+
+        message = message.trim();
+        Log.v(TAG, "sendBTMessage: '" + message + "'");
+
         if (mChatService.getState() != BluetoothChatService.STATE_CONNECTED) {
             Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
             return;
@@ -234,8 +259,7 @@ public class MainActivity extends ActionBarActivity {
         // Check that there's actually something to send
         if (message.length() > 0) {
             // Get the message bytes and tell the BluetoothChatService to write
-            message = message.trim();
-            Log.v(TAG, "message to send: '" + message + "'");
+//            Log.v(TAG, "message to send: '" + message + "'");
             byte[] send = message.getBytes();
             mChatService.write(send);
 
@@ -305,7 +329,8 @@ public class MainActivity extends ActionBarActivity {
                     Log.v(TAG, "received: " + readMessage);
                     if (readMessage.startsWith("+list:")) {
                         readMessage = readMessage.substring(6);
-                        mConversationArrayAdapter.add("Animation: " + readMessage);
+                        mConversationArrayAdapter.add(readMessage);
+                        mConversationArrayAdapter.sort(mConversationArrayAdapterComparator);
                     }
                     break;
 
@@ -489,8 +514,11 @@ public class MainActivity extends ActionBarActivity {
         SeekBar sbText = (SeekBar) v.findViewById(R.id.seekBarText);
         sbText.setProgress(currentTextBrightness);
         sbText.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            }
+
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
@@ -503,8 +531,11 @@ public class MainActivity extends ActionBarActivity {
         SeekBar sbAnim = (SeekBar) v.findViewById(R.id.seekBarAnim);
         sbAnim.setProgress(currentAnimBrightness);
         sbAnim.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            }
+
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
