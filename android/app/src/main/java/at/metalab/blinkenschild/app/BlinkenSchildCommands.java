@@ -27,13 +27,13 @@ public class BlinkenSchildCommands {
     public final static String COMMAND_NOOP = "x";
 
     public final static String COMMAND_GET_ANIMATIONS = "+list:";
-
     public final static String COMMAND_SET_ANIMATION = "+anim:%s";
+    public final static String COMMAND_SET_ANIMATION_BRIGHTNESS = "+anim-brightness:%d";
+
     public final static String COMMAND_SET_TEXT = "+text:%s";
-    public final static String COMMAND_SET_TEXTCOLOR = "+text-color:%s";
-    public final static String COMMAND_SET_OUTLINECOLOR = "+outline-color:%s";
-    public final static String COMMAND_SET_BRIGHTNESS_TEXT = "+text-brightness:%d";
-    public final static String COMMAND_SET_BRIGHTNESS_ANIM = "+anim-brightness:%d";
+    public final static String COMMAND_SET_TEXT_BRIGHTNESS = "+text-brightness:%d";
+    public final static String COMMAND_SET_TEXT_COLOR = "+text-color:%d,%d,%d"; // r,g,b
+    public final static String COMMAND_SET_OUTLINE_COLOR = "+outline-color:%d,%d,%d"; // r,g,b
 
     public static String setAnimation(String filename) {
         return String.format(COMMAND_SET_ANIMATION, filename);
@@ -43,12 +43,26 @@ public class BlinkenSchildCommands {
         return String.format(COMMAND_SET_TEXT, text);
     }
 
-    public static String setTextColor(String textColor) {
-        return String.format(COMMAND_SET_TEXTCOLOR, textColor);
+    public static String setTextColor(int color) {
+        int red = color >> 16 & 255;
+        int green = color >> 8 & 255;
+        int blue = color & 255;
+        return setTextColor(red, green, blue);
     }
 
-    public static String setOutlineColor(String outlineColor) {
-        return String.format(COMMAND_SET_OUTLINECOLOR, outlineColor);
+    public static String setTextColor(int red, int green, int blue) {
+        return String.format(COMMAND_SET_TEXT_COLOR, red, green, blue);
+    }
+
+    public static String setOutlineColor(int color) {
+        int red = color >> 16 & 255;
+        int green = color >> 8 & 255;
+        int blue = color & 255;
+        return setOutlineColor(red, green, blue);
+    }
+
+    public static String setOutlineColor(int red, int green, int blue) {
+        return String.format(COMMAND_SET_OUTLINE_COLOR, red, green, blue);
     }
 
     /**
@@ -56,7 +70,7 @@ public class BlinkenSchildCommands {
      * @param brightness [1..9] (1=100%, 9=10%)
      */
     public static String setTextBrightness(int brightness) {
-        return String.format(COMMAND_SET_BRIGHTNESS_TEXT, brightness);
+        return String.format(COMMAND_SET_TEXT_BRIGHTNESS, brightness);
     }
 
     /**
@@ -64,6 +78,6 @@ public class BlinkenSchildCommands {
      * @param brightness [1..9] (1=100%, 9=10%)
      */
     public static String setAnimationBrightness(int brightness) {
-        return String.format(COMMAND_SET_BRIGHTNESS_ANIM, brightness);
+        return String.format(COMMAND_SET_ANIMATION_BRIGHTNESS, brightness);
     }
 }

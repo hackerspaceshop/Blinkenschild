@@ -484,10 +484,7 @@ public class MainActivity extends ActionBarActivity {
                     @Override
                     public void colorChanged(int color) {
                         Log.v(TAG, "color changed to " + color);
-                        int blue = color & 255;
-                        int green = color >> 8 & 255;
-                        int red = color >> 16 & 255;
-                        sendBTMessage(BlinkenSchildCommands.setTextColor(red + "," + green + "," + blue));
+                        sendBTMessage(BlinkenSchildCommands.setTextColor(color));
                         currentTextColor = color;
                     }
                 }, currentTextColor).show();
@@ -502,10 +499,7 @@ public class MainActivity extends ActionBarActivity {
                     @Override
                     public void colorChanged(int color) {
                         Log.v(TAG, "color changed to " + color);
-                        int blue = color & 255;
-                        int green = color >> 8 & 255;
-                        int red = color >> 16 & 255;
-                        sendBTMessage(BlinkenSchildCommands.setOutlineColor(red + "," + green + "," + blue));
+                        sendBTMessage(BlinkenSchildCommands.setOutlineColor(color));
                         currentOutlineColor = color;
                     }
                 }, currentOutlineColor).show();
