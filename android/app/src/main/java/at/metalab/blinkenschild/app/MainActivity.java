@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -48,8 +49,9 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Collections;
 import java.util.Comparator;
+
+import at.metalab.blinkenschild.app.ColorPicker.ColorPickerDialog;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -98,7 +100,7 @@ public class MainActivity extends ActionBarActivity {
 
     private int currentAnimation = -1;
     private String currentText = null;
-    private int currentTextColor = 0;
+    private int currentTextColor = Color.BLACK;
     private int currentOutlineColor = 0;
     private int currentTextBrightness = 9;
     private int currentAnimBrightness = 9;
@@ -480,14 +482,23 @@ public class MainActivity extends ActionBarActivity {
         btnColorPicker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new ColorPickerDialog(MainActivity.this, new ColorPickerDialog.OnColorChangedListener() {
+                new ColorPickerDialog(MainActivity.this, currentTextColor, new ColorPickerDialog.ColorPickerListener() {
                     @Override
-                    public void colorChanged(int color) {
-                        Log.v(TAG, "color changed to " + color);
+                    public void onCancel(ColorPickerDialog dialog) {
+                        sendBTMessage(BlinkenSchildCommands.setTextColor(currentTextColor));
+                    }
+
+                    @Override
+                    public void onOk(ColorPickerDialog dialog, int color) {
                         sendBTMessage(BlinkenSchildCommands.setTextColor(color));
                         currentTextColor = color;
                     }
-                }, currentTextColor).show();
+
+                    @Override
+                    public void onNewColorClick(ColorPickerDialog dialog, int color) {
+                        sendBTMessage(BlinkenSchildCommands.setTextColor(color));
+                    }
+                }).show();
             }
         });
 
@@ -495,25 +506,31 @@ public class MainActivity extends ActionBarActivity {
         btnOutlineColorPicker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new ColorPickerDialog(MainActivity.this, new ColorPickerDialog.OnColorChangedListener() {
+                new ColorPickerDialog(MainActivity.this, currentOutlineColor, new ColorPickerDialog.ColorPickerListener() {
                     @Override
-                    public void colorChanged(int color) {
-                        Log.v(TAG, "color changed to " + color);
+                    public void onCancel(ColorPickerDialog dialog) {
+                        sendBTMessage(BlinkenSchildCommands.setOutlineColor(currentOutlineColor));
+                    }
+
+                    @Override
+                    public void onOk(ColorPickerDialog dialog, int color) {
                         sendBTMessage(BlinkenSchildCommands.setOutlineColor(color));
                         currentOutlineColor = color;
                     }
-                }, currentOutlineColor).show();
+
+                    @Override
+                    public void onNewColorClick(ColorPickerDialog dialog, int color) {
+                        sendBTMessage(BlinkenSchildCommands.setOutlineColor(color));
+                    }
+                }).show();
             }
         });
 
         SeekBar sbText = (SeekBar) v.findViewById(R.id.seekBarText);
         sbText.setProgress(currentTextBrightness);
         sbText.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            }
-
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { }
+            public void onStartTrackingTouch(SeekBar seekBar) { }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
@@ -526,11 +543,8 @@ public class MainActivity extends ActionBarActivity {
         SeekBar sbAnim = (SeekBar) v.findViewById(R.id.seekBarAnim);
         sbAnim.setProgress(currentAnimBrightness);
         sbAnim.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            }
-
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { }
+            public void onStartTrackingTouch(SeekBar seekBar) { }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {

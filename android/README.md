@@ -2,6 +2,8 @@ To Do
 -----
 
 * Make the UI look more pretty
+* Better ColorPicker
+  * Better: https://github.com/metachris/android-color-picker
 
 
 License

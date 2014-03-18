@@ -35,7 +35,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
-public class ColorPickerDialog extends Dialog {
+public class OldColorPickerDialog extends Dialog {
     public interface OnColorChangedListener {
         void colorChanged(int color);
     }
@@ -224,7 +224,7 @@ public class ColorPickerDialog extends Dialog {
         }
     }
 
-    public ColorPickerDialog(Context context, OnColorChangedListener listener, int initialColor) {
+    public OldColorPickerDialog(Context context, OnColorChangedListener listener, int initialColor) {
         super(context);
         mListener = listener;
         mInitialColor = initialColor;
@@ -241,7 +241,7 @@ public class ColorPickerDialog extends Dialog {
         };
 
         LayoutInflater inflater = getLayoutInflater();
-        View v = inflater.inflate(R.layout.dialog_colorpicker, null);
+        View v = inflater.inflate(R.layout.dialog_oldcolorpicker, null);
 
         LinearLayout ll = (LinearLayout) v.findViewById(R.id.ll1);
         mColorPickerView = new ColorPickerView(getContext(), l, mInitialColor);

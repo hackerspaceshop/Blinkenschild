@@ -3,4 +3,9 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
-    </resources>
+    <dimen name="colorPicker_hsvHeight">240dp</dimen>
+    <dimen name="colorPicker_hsvWidth">240dp</dimen>
+    <dimen name="colorPicker_hueWidth">30dp</dimen>
+    <dimen name="colorPicker_spacer">8dp</dimen>
+
+</resources>
