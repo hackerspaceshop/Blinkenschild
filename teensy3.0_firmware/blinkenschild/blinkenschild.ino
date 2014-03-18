@@ -25,7 +25,7 @@ char animation[13]="0";   // used for SD open
 // is a fixed animation playing? choosen over BT ?
 int fixed_anim_playing =0;
 
-// which anim are we currently playing
+// which anim are we currently playingd
 int animloopcount =0;
 
 
@@ -44,6 +44,8 @@ DMAMEM int displayMemory[ledsPerStrip*6];
 int drawingMemory[ledsPerStrip*6];
 const int config = WS2811_RGB | WS2811_800kHz;
 OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, config);
+
+
 
 
 
@@ -154,6 +156,8 @@ int delim = 0xD; // newline
 int inchar; // current char read
 String cmd; // current command over bluetooth
 String payload; // current payload of command
+
+
 String textoverlay1 ="";
 String textoverlay2 ="";
 String textoverlay3 ="";
@@ -162,6 +166,13 @@ String textoverlay3 ="";
 int text_r=0;
 int text_g=0;
 int text_b=0;
+
+
+
+
+//current color (0-255) / dimmer = brightness
+int animdimmer=1;
+int textdimmer=1;
 
 
 void loop() {
@@ -179,10 +190,10 @@ void loop() {
   
  */ 
   
- /*
+ 
   
  // TESTCODE for serial
-  
+  /*
 // 0x01  head of frame..
  while (SerialReadBlocking() != 1) {} // head of frame ...
    
@@ -211,8 +222,8 @@ void loop() {
  return;
 
 
-
-  */
+*/
+  
   
 
   
@@ -312,7 +323,7 @@ if(Serial1.available())
      
      if(payload.indexOf(",") != -1)
      {
-       textoverlay1=payload.substring(0,payload.indexOf(";"));
+       textoverlay1=payload.substring(0,payload.indexOf(","));
    
    
    
@@ -321,11 +332,17 @@ if(Serial1.available())
    
        if(payload.indexOf(",", (payload.indexOf(",")+1)) != -1) 
        {
+         
+         // 3 lines 
+         
          textoverlay2=payload.substring(payload.indexOf(",")+1, payload.indexOf(",", (payload.indexOf(",")+1)) );
          textoverlay3=payload.substring(payload.lastIndexOf(",")+1);
        }  
        else
        {
+         
+         // two lines
+         
          textoverlay3=payload.substring(payload.indexOf(",")+1);
          textoverlay2="";
          
@@ -334,27 +351,49 @@ if(Serial1.available())
      }
      else
      {
+       
+       
+       
+       // one line in the middle
       textoverlay2=payload;
       
       textoverlay1="";
       textoverlay3="";
      }
   
-     
-     
+    }  // text
+    
+    
 
-     
-     
-     
-     
-     
-     
+
     
-     
-     
+    if(cmd == "+text-brightness")  // t
+    {
+      Serial.println("text-brightness");
+      Serial.println(payload);      
+      textdimmer=payload.toInt();   
+    
+      
+   
+  
+      
+      
+      
     }
+
+
     
+    if(cmd == "+anim-brightness")  // t
+    {
+      Serial.println("anim-brightness");
+      Serial.println(payload);      
+      animdimmer=payload.toInt();   
     
+      
+    }
+
+
+
     
     
     
@@ -516,9 +555,22 @@ if(Serial1.available())
         
          for (int j=0; j < total_leds; j++) { 
            int r,g,b =0;
+           
+           
+           
+           
            r = sdfile.read();
+           r=r/animdimmer;
+           if(r<0) r=0;
+
            g = sdfile.read();
+           g=g/animdimmer;     
+           if(g<0) g=0;      
+           
            b = sdfile.read();
+           b=b/animdimmer;
+           if(b<0) b=0;
+           
            
            //Serial.println(j);
            
@@ -551,7 +603,7 @@ if(textoverlay3 !="" )
 
 
        leds.show();  
-      // delay(10000);
+    delay(10);
    
    
        
@@ -798,7 +850,20 @@ for(int j=0;j<displaytext.length();j++)
   
   //  erase();
   //setXY testcode
-  
+
+
+
+
+       
+  int r = text_r/textdimmer;
+  int g = text_g/textdimmer;
+  int b = text_b/textdimmer;
+  if(r<0) r=0;   
+  if(g<0) g=0;   
+  if(b<0) b=0;   
+
+
+
 
   for(int y=0; y< 8 ; y++)
   {
@@ -806,7 +871,7 @@ for(int j=0;j<displaytext.length();j++)
    { 
     if(font_small[charindex][(y*charwidth)+x]) 
     {      
-       setXY(x+1+offset_x+stringwidth,y+1+offset_y,text_r,text_g,text_b);
+       setXY(x+1+offset_x+stringwidth,y+1+offset_y,r,g,b);
     }
    }
   }  
