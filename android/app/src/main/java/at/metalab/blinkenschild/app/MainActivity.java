@@ -1,18 +1,18 @@
 /**
- * This file is part of the BlinkenSchildCommands Android app.
+ * This file is part of the BlinkenSchild Android app.
  *
- * The BlinkenSchildCommands Android app is free software: you can redistribute
+ * The BlinkenSchild Android app is free software: you can redistribute
  * it and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * The BlinkenSchildCommands Android app is distributed in the hope that it will
+ * The BlinkenSchild Android app is distributed in the hope that it will
  * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with the BlinkenSchildCommands Android app. If not, see
+ * along with the BlinkenSchild Android app. If not, see
  * <http://www.gnu.org/licenses/>.
  *
  * Created by Chris Hager, March 2014
@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -44,8 +45,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.Comparator;
+
+import at.metalab.blinkenschild.app.ColorPicker.ColorPickerDialog;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -78,8 +84,11 @@ public class MainActivity extends ActionBarActivity {
 
     // Name of the connected device
     private String mConnectedDeviceName = null;
+
     // Array adapter for the conversation thread
     private ArrayAdapter<String> mConversationArrayAdapter;
+    private Comparator<String> mConversationArrayAdapterComparator;
+
     // String buffer for outgoing messages
     private StringBuffer mOutStringBuffer;
     // Local Bluetooth adapter
@@ -87,18 +96,26 @@ public class MainActivity extends ActionBarActivity {
     // Member object for the chat services
     private BluetoothChatService mChatService = null;
     private Button mSendDebugButton;
+    private Dialog dialogText = null;
 
     private int currentAnimation = -1;
     private String currentText = null;
-    private int currentTextColor = 0;
+    private int currentTextColor = Color.BLACK;
     private int currentOutlineColor = 0;
 
-    private Dialog dialogText = null;
+    private final static int TEXT_BRIGHTNESS_MAX = 9;
+    private final static int ANIM_BRIGHTNESS_MAX = 9;
+    private int currentTextBrightness = TEXT_BRIGHTNESS_MAX;
+    private int currentAnimBrightness = ANIM_BRIGHTNESS_MAX;
+
+    private void log(String s) {
+        if (D) Log.v(TAG, s);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(D) Log.e(TAG, "+++ ON CREATE +++");
+        log("+++ ON CREATE +++");
 
         // Set up the window layout
         setContentView(R.layout.main);
@@ -117,7 +134,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public void onStart() {
         super.onStart();
-        if(D) Log.e(TAG, "++ ON START ++");
+        log("++ ON START ++");
 
         // If BT is not on, request that it be enabled.
         // setupChat() will then be called during onActivityResult
@@ -133,7 +150,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public synchronized void onResume() {
         super.onResume();
-        if(D) Log.e(TAG, "+ ON RESUME +");
+        log("+ ON RESUME +");
 
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
@@ -147,23 +164,31 @@ public class MainActivity extends ActionBarActivity {
         }
 
         if (isFirstStart) {
-//            startDeviceSelectActivity();
+            if (mBluetoothAdapter.isEnabled())
+                startDeviceSelectActivity();
             isFirstStart = false;
         }
     }
 
     private void setupChat() {
-        Log.d(TAG, "setupChat()");
+        log("setupChat()");
 
         // Initialize the array adapter for the conversation thread
         mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
+        mConversationArrayAdapterComparator = new Comparator<String>() {
+            @Override
+            public int compare(String lhs, String rhs) {
+                return lhs.compareTo(rhs);
+            }
+        };
+
         mConversationView = (ListView) findViewById(R.id.in);
         mConversationView.setAdapter(mConversationArrayAdapter);
         mConversationView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String fn = mConversationArrayAdapter.getItem(position).substring(11);
-                sendBTMessage(BlinkenSchildCommands.setAnimation(fn));
+                String fn = mConversationArrayAdapter.getItem(position);
+                sendBTMessage(BlinkenSchildCommands.setAnimation(fn + ".TEK"));
             }
         });
 
@@ -224,6 +249,14 @@ public class MainActivity extends ActionBarActivity {
      */
     private void sendBTMessage(String message) {
         // Check that we're actually connected before trying anything
+        if (message == null) {
+            Log.e(TAG, "sendBTMessage(null) doesnt work");
+            return;
+        }
+
+        message = message.trim();
+        Log.v(TAG, "sendBTMessage: '" + message + "'");
+
         if (mChatService.getState() != BluetoothChatService.STATE_CONNECTED) {
             Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
             return;
@@ -232,8 +265,7 @@ public class MainActivity extends ActionBarActivity {
         // Check that there's actually something to send
         if (message.length() > 0) {
             // Get the message bytes and tell the BluetoothChatService to write
-            message = message.trim();
-            Log.v(TAG, "message to send: '" + message + "'");
+//            Log.v(TAG, "message to send: '" + message + "'");
             byte[] send = message.getBytes();
             mChatService.write(send);
 
@@ -303,7 +335,10 @@ public class MainActivity extends ActionBarActivity {
                     Log.v(TAG, "received: " + readMessage);
                     if (readMessage.startsWith("+list:")) {
                         readMessage = readMessage.substring(6);
-                        mConversationArrayAdapter.add("Animation: " + readMessage);
+                        if (readMessage.indexOf(".TEK") > -1)
+                            readMessage = readMessage.substring(0, readMessage.indexOf(".TEK"));
+                        mConversationArrayAdapter.add(readMessage);
+                        mConversationArrayAdapter.sort(mConversationArrayAdapterComparator);
                     }
                     break;
 
@@ -452,17 +487,23 @@ public class MainActivity extends ActionBarActivity {
         btnColorPicker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new ColorPickerDialog(MainActivity.this, new ColorPickerDialog.OnColorChangedListener() {
+                new ColorPickerDialog(MainActivity.this, currentTextColor, new ColorPickerDialog.ColorPickerListener() {
                     @Override
-                    public void colorChanged(int color) {
-                        Log.v(TAG, "color changed to " + color);
-                        int blue = color & 255;
-                        int green = color >> 8 & 255;
-                        int red = color >> 16 & 255;
-                        sendBTMessage(BlinkenSchildCommands.setTextColor(red + "," + green + "," + blue));
+                    public void onCancel(ColorPickerDialog dialog) {
+                        sendBTMessage(BlinkenSchildCommands.setTextColor(currentTextColor));
+                    }
+
+                    @Override
+                    public void onOk(ColorPickerDialog dialog, int color) {
+                        sendBTMessage(BlinkenSchildCommands.setTextColor(color));
                         currentTextColor = color;
                     }
-                }, currentTextColor).show();
+
+                    @Override
+                    public void onNewColorClick(ColorPickerDialog dialog, int color) {
+                        sendBTMessage(BlinkenSchildCommands.setTextColor(color));
+                    }
+                }).show();
             }
         });
 
@@ -470,22 +511,58 @@ public class MainActivity extends ActionBarActivity {
         btnOutlineColorPicker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new ColorPickerDialog(MainActivity.this, new ColorPickerDialog.OnColorChangedListener() {
+                new ColorPickerDialog(MainActivity.this, currentOutlineColor, new ColorPickerDialog.ColorPickerListener() {
                     @Override
-                    public void colorChanged(int color) {
-                        Log.v(TAG, "color changed to " + color);
-                        int blue = color & 255;
-                        int green = color >> 8 & 255;
-                        int red = color >> 16 & 255;
-                        sendBTMessage(BlinkenSchildCommands.setOutlineColor(red + "," + green + "," + blue));
+                    public void onCancel(ColorPickerDialog dialog) {
+                        sendBTMessage(BlinkenSchildCommands.setOutlineColor(currentOutlineColor));
+                    }
+
+                    @Override
+                    public void onOk(ColorPickerDialog dialog, int color) {
+                        sendBTMessage(BlinkenSchildCommands.setOutlineColor(color));
                         currentOutlineColor = color;
                     }
-                }, currentOutlineColor).show();
+
+                    @Override
+                    public void onNewColorClick(ColorPickerDialog dialog, int color) {
+                        sendBTMessage(BlinkenSchildCommands.setOutlineColor(color));
+                    }
+                }).show();
+            }
+        });
+
+        SeekBar sbText = (SeekBar) v.findViewById(R.id.seekBarText);
+        sbText.setMax(TEXT_BRIGHTNESS_MAX);
+        sbText.setProgress(currentTextBrightness);
+        sbText.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { }
+            public void onStartTrackingTouch(SeekBar seekBar) { }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                currentTextBrightness = seekBar.getProgress();
+//                Toast.makeText(MainActivity.this, "Brightness: " + (10 - currentTextBrightness), Toast.LENGTH_SHORT).show();
+                sendBTMessage(BlinkenSchildCommands.setTextBrightness(TEXT_BRIGHTNESS_MAX - currentTextBrightness + 1));
+            }
+        });
+
+        SeekBar sbAnim = (SeekBar) v.findViewById(R.id.seekBarAnim);
+        sbAnim.setMax(ANIM_BRIGHTNESS_MAX);
+        sbAnim.setProgress(currentAnimBrightness);
+        sbAnim.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { }
+            public void onStartTrackingTouch(SeekBar seekBar) { }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                currentAnimBrightness = seekBar.getProgress();
+//                Toast.makeText(MainActivity.this, "Anim Progress: " + (10 - currentAnimBrightness), Toast.LENGTH_SHORT).show();
+                sendBTMessage(BlinkenSchildCommands.setAnimationBrightness(ANIM_BRIGHTNESS_MAX - currentAnimBrightness + 1));
             }
         });
 
         builder.setView(v)
-                .setTitle("Text Colors")
+                .setTitle("Colors & Effects")
                 .setPositiveButton("Done", null);
         builder.create().show();
 

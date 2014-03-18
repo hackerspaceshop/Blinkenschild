@@ -1,39 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/colorPicker_dialogView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
-    android:weightSum="1"
-    android:padding="20dp"
-    android:id="@+id/ll1">
+    android:layout_gravity="center" >
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_marginTop="15dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <RelativeLayout
+        android:id="@+id/colorPicker_viewContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/colorPicker_spacer"
+        android:paddingLeft="@dimen/colorPicker_spacer"
+        android:paddingRight="@dimen/colorPicker_spacer"
+        android:paddingTop="@dimen/colorPicker_spacer" android:layout_gravity="center">
 
-        <Button android:id="@+id/button_white"
-            android:layout_width="fill_parent"
+        <at.metalab.blinkenschild.app.ColorPicker.ColorPickerView
+            android:id="@+id/colorPicker_viewSatBri"
+            android:layout_width="@dimen/colorPicker_hsvWidth"
+            android:layout_height="@dimen/colorPicker_hsvHeight"
+            android:layerType="software" />
+
+        <ImageView
+            android:id="@+id/colorPicker_viewHue"
+            android:layout_width="@dimen/colorPicker_hueWidth"
+            android:layout_height="@dimen/colorPicker_hsvHeight"
+            android:layout_marginLeft="@dimen/colorPicker_spacer"
+            android:layout_toRightOf="@id/colorPicker_viewSatBri"
+            android:scaleType="fitXY"
+            android:src="@drawable/ambilwarna_hue" />
+
+        <ImageView
+            android:id="@+id/colorPicker_cursor"
+            android:layout_width="9dp"
+            android:layout_height="9dp"
+            android:scaleType="matrix"
+            android:src="@drawable/ambilwarna_cursor" />
+
+        <ImageView
+            android:id="@+id/colorPicker_target"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:scaleType="matrix"
+            android:src="@drawable/ambilwarna_target" />
+
+        <LinearLayout
+            android:id="@+id/ambilwarna_state"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="White"
-            android:layout_weight="1"
-            />
+            android:layout_below="@id/colorPicker_viewSatBri"
+            android:layout_marginTop="@dimen/colorPicker_spacer"
+            android:gravity="center"
+            android:orientation="horizontal" >
 
-        <Button android:id="@+id/button_black"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Black"
-            android:layout_weight="1"
-            />
+            <View
+                android:id="@+id/colorPicker_oldColor"
+                android:layout_width="60dp"
+                android:layout_height="30dp"
+                android:background="#faa" />
 
-        <Button android:id="@+id/button_done"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Done"
-            android:layout_weight="1"
-            />
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ambilwarna_arrow_right" />
 
-    </LinearLayout>
-</LinearLayout>
+            <View
+                android:id="@+id/colorPicker_newColor"
+                android:layout_width="130dp"
+                android:layout_height="30dp"
+                android:background="#aaf" />
+        </LinearLayout>
+    </RelativeLayout>
+
+</FrameLayout>
