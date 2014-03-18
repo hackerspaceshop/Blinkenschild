@@ -30,6 +30,9 @@ public class BlinkenSchildCommands {
     public final static String COMMAND_SET_ANIMATION = "+anim:%s";
     public final static String COMMAND_SET_ANIMATION_BRIGHTNESS = "+anim-brightness:%d";
 
+    public final static String COMMAND_STOP_ANIMATION = "+anim-stop";
+    public final static String COMMAND_CLEAR_TEXT = "+text-clear";
+
     public final static String COMMAND_SET_TEXT = "+text:%s";
     public final static String COMMAND_SET_TEXT_BRIGHTNESS = "+text-brightness:%d";
     public final static String COMMAND_SET_TEXT_COLOR = "+text-color:%d,%d,%d"; // r,g,b

@@ -2,8 +2,10 @@ To Do
 -----
 
 * Make the UI look more pretty
-* Better ColorPicker
-  * Better: https://github.com/metachris/android-color-picker
+* Extend ListAdapter Items
+  * Info Line (perhaps coming from the schild)
+  * Separate display line and filename
+  * Add images
 
 
 License

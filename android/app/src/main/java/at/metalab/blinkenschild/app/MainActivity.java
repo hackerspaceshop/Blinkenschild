@@ -102,8 +102,11 @@ public class MainActivity extends ActionBarActivity {
     private String currentText = null;
     private int currentTextColor = Color.BLACK;
     private int currentOutlineColor = 0;
-    private int currentTextBrightness = 9;
-    private int currentAnimBrightness = 9;
+
+    private final static int TEXT_BRIGHTNESS_MAX = 9;
+    private final static int ANIM_BRIGHTNESS_MAX = 9;
+    private int currentTextBrightness = TEXT_BRIGHTNESS_MAX;
+    private int currentAnimBrightness = ANIM_BRIGHTNESS_MAX;
 
     private void log(String s) {
         if (D) Log.v(TAG, s);
@@ -185,7 +188,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String fn = mConversationArrayAdapter.getItem(position);
-                sendBTMessage(BlinkenSchildCommands.setAnimation(fn));
+                sendBTMessage(BlinkenSchildCommands.setAnimation(fn + ".TEK"));
             }
         });
 
@@ -332,6 +335,8 @@ public class MainActivity extends ActionBarActivity {
                     Log.v(TAG, "received: " + readMessage);
                     if (readMessage.startsWith("+list:")) {
                         readMessage = readMessage.substring(6);
+                        if (readMessage.indexOf(".TEK") > -1)
+                            readMessage = readMessage.substring(0, readMessage.indexOf(".TEK"));
                         mConversationArrayAdapter.add(readMessage);
                         mConversationArrayAdapter.sort(mConversationArrayAdapterComparator);
                     }
@@ -527,6 +532,7 @@ public class MainActivity extends ActionBarActivity {
         });
 
         SeekBar sbText = (SeekBar) v.findViewById(R.id.seekBarText);
+        sbText.setMax(TEXT_BRIGHTNESS_MAX);
         sbText.setProgress(currentTextBrightness);
         sbText.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { }
@@ -536,11 +542,12 @@ public class MainActivity extends ActionBarActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {
                 currentTextBrightness = seekBar.getProgress();
 //                Toast.makeText(MainActivity.this, "Brightness: " + (10 - currentTextBrightness), Toast.LENGTH_SHORT).show();
-                sendBTMessage(BlinkenSchildCommands.setTextBrightness(10 - currentTextBrightness));
+                sendBTMessage(BlinkenSchildCommands.setTextBrightness(TEXT_BRIGHTNESS_MAX - currentTextBrightness + 1));
             }
         });
 
         SeekBar sbAnim = (SeekBar) v.findViewById(R.id.seekBarAnim);
+        sbAnim.setMax(ANIM_BRIGHTNESS_MAX);
         sbAnim.setProgress(currentAnimBrightness);
         sbAnim.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) { }
@@ -550,7 +557,7 @@ public class MainActivity extends ActionBarActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {
                 currentAnimBrightness = seekBar.getProgress();
 //                Toast.makeText(MainActivity.this, "Anim Progress: " + (10 - currentAnimBrightness), Toast.LENGTH_SHORT).show();
-                sendBTMessage(BlinkenSchildCommands.setTextBrightness(10 - currentAnimBrightness));
+                sendBTMessage(BlinkenSchildCommands.setAnimationBrightness(ANIM_BRIGHTNESS_MAX - currentAnimBrightness + 1));
             }
         });
 
