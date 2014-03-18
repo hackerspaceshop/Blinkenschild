@@ -5,6 +5,10 @@
 
 File sdfile;
 
+// Return values from the serial line
+const int SERIAL_OK = 0; // All fine, no need to do anything
+const int SERIAL_RELOAD_ANIMATION = 1; // Set an animation. Load new file from sd card
+
 // are we looping trough all animations? or are we playing one specific selected animation?
 int loop_animations = 1;
 
@@ -38,6 +42,26 @@ OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, config);
 char animation_list[100][13] = { };
 int animcounter = 0;
 
+int inchar; // current char read
+String cmd; // current command over bluetooth
+String payload; // current payload of command
+
+String textoverlay1 = "";
+String textoverlay2 = "";
+String textoverlay3 = "";
+
+// global for font color
+int text_r = 0;
+int text_g = 0;
+int text_b = 0;
+
+//current color (0-255) / dimmer = brightness
+int animdimmer = 1;
+int textdimmer = 1;
+
+int line1_ypadding = 0;
+int line3_ypadding = 16;
+
 void setup() {
     // safe is safe..
     delay(2000);
@@ -65,7 +89,6 @@ void setup() {
 }
 
 void generate_anim_list() {
-
     Serial.println("Opening SD card to generate list");
     sdfile = SD.open("/");
 
@@ -103,194 +126,158 @@ void generate_anim_list() {
 
 }
 
-int delim = 0xD; // newline
-int inchar; // current char read
-String cmd; // current command over bluetooth
-String payload; // current payload of command
+int handle_serial_data() {
+    // handle data overbluetooth
+    while (Serial1.available()) {
+        inchar = Serial1.read();
 
-String textoverlay1 = "";
-String textoverlay2 = "";
-String textoverlay3 = "";
+        Serial.print("0x");
+        Serial.print(inchar, HEX);
+        Serial.print(" ");
 
-// global for font color
-int text_r = 0;
-int text_g = 0;
-int text_b = 0;
+        //  If line ends (with CR LF), interpret command
+        if ((inchar == 0xD) || (inchar == 0xA)) {
+            Serial.print("got a line: ");
+            Serial.println(bluestring);
 
-//current color (0-255) / dimmer = brightness
-int animdimmer = 1;
-int textdimmer = 1;
+            cmd = bluestring.substring(0, bluestring.indexOf(":"));
+            payload = bluestring.substring(bluestring.indexOf(":") + 1);
+            bluestring = bluestring.substring(cmd.length() + payload.length() + 2);
 
-int line1_ypadding = 0;
-int line3_ypadding = 16;
+            Serial.print("instruction: ");
+            Serial.println(cmd);
+            Serial.print("payload: ");
+            Serial.println(payload);
+
+            if (cmd == "+list") {
+                Serial.println("Listing files on card");
+
+                for (int i = 0; i < animcounter; i++) {
+                    Serial1.print("+list:");
+                    Serial1.println(animation_list[i]);
+                }
+
+                Serial1.println("-list");
+            }
+
+            if (cmd == "+text") {
+                Serial.println("we got text");
+                // TODO is there a special char (;) in the text? then we would linewrap  an set multiple text values..
+
+                line1_ypadding = 0;
+                line3_ypadding = 16;
+
+                if (payload.indexOf(",") != -1) {
+                    textoverlay1 = payload.substring(0,
+                            payload.indexOf(","));
+
+                    if (payload.indexOf(",", (payload.indexOf(",") + 1))
+                            != -1) {
+
+                        // 3 lines
+
+                        textoverlay2 = payload.substring(
+                                payload.indexOf(",") + 1,
+                                payload.indexOf(",",
+                                        (payload.indexOf(",") + 1)));
+                        textoverlay3 = payload.substring(
+                                payload.lastIndexOf(",") + 1);
+                    } else {
+
+                        // two lines
+
+                        line1_ypadding = 4;
+                        line3_ypadding = 13;
+
+                        textoverlay3 = payload.substring(
+                                payload.indexOf(",") + 1);
+                        textoverlay2 = "";
+
+                    }
+                } else {
+
+                    // one line in the middle
+                    textoverlay2 = payload;
+
+                    textoverlay1 = "";
+                    textoverlay3 = "";
+                }
+
+            } // text
+
+            if (cmd == "+text-brightness") {
+                Serial.println("text-brightness");
+                Serial.println(payload);
+                textdimmer = payload.toInt();
+
+            }
+
+            if (cmd == "+anim-brightness") {
+                Serial.println("anim-brightness");
+                Serial.println(payload);
+                animdimmer = payload.toInt();
+
+            }
+
+            if (cmd == "+text-color") {
+                Serial.println("text-color");
+                Serial.println(payload);
+                text_g = payload.substring(0, payload.indexOf(",")).toInt();
+
+                text_r = payload.substring(payload.indexOf(",") + 1,
+                        payload.lastIndexOf(",")).toInt();
+
+                text_b =
+                        payload.substring(payload.lastIndexOf(",") + 1).toInt();
+
+                Serial.print("R: ");
+                Serial.print(text_r);
+                Serial.print(" G: ");
+                Serial.print(text_g);
+                Serial.print(" B: ");
+                Serial.println(text_b);
+            }
+
+            if (cmd == "+anim") {
+                // only play that one specific animation
+                loop_animations = 0;
+                //current_animation_index=0;
+
+                Serial.println("animation!");
+
+                for (int i = 0; i < 13; i++)
+                    animation[i] = 0;
+
+                for (int idx = 0; idx < payload.length(); idx++) {
+                    animation[idx] = payload[idx]; //payload;
+                }
+
+                Serial.print("Animation set to: ");
+                Serial.println(animation);
+
+                Serial1.println("-anim");
+                //Serial1.println(animation);
+                //Serial1.println("- DONE");
+
+                fixed_anim_playing = 1;
+                return SERIAL_RELOAD_ANIMATION;
+            }
+
+        } else {
+            // middle of line: append character to buffer
+            bluestring += (char) inchar;
+        }
+    } // end while Serial1.available
+    return SERIAL_OK;
+}
 
 void loop() {
     if (Serial1.available()) {
-
-        // handle data overbluetooth
-        while (Serial1.available()) {
-            inchar = Serial1.read();
-
-            Serial.print("0x");
-            ;
-            Serial.print(inchar, HEX);
-            Serial.print(" ");
-
-            //  CR LF, ...
-            if ((inchar == 0xD) || (inchar == 0xA)) {
-                Serial.print("got a line: ");
-                Serial.println(bluestring);
-
-                cmd = bluestring.substring(0, bluestring.indexOf(":"));
-                payload = bluestring.substring(bluestring.indexOf(":") + 1);
-                bluestring = bluestring.substring(
-                        cmd.length() + payload.length() + 2);
-
-                Serial.print("instruction: ");
-                Serial.println(cmd);
-
-                // Serial.print("payload: ");
-                // Serial.println(payload);
-
-                if (cmd == "+list") // c (command)
-                        {
-                    Serial.println("command");
-                    Serial.println(payload);
-
-                    Serial.println("Listing files on card");
-
-                    for (int i = 0; i < animcounter; i++) {
-                        Serial1.print("+list:");
-                        Serial1.println(animation_list[i]);
-                    }
-
-                    Serial1.println("-list");
-                }
-
-                if (cmd == "+text") // t
-                        {
-                    Serial.println("we got text");
-                    Serial.println(payload);
-                    // TODO is there a special char (;) in the text? then we would linewrap  an set multiple text values..
-
-                    line1_ypadding = 0;
-                    line3_ypadding = 16;
-
-                    if (payload.indexOf(",") != -1) {
-                        textoverlay1 = payload.substring(0,
-                                payload.indexOf(","));
-
-                        if (payload.indexOf(",", (payload.indexOf(",") + 1))
-                                != -1) {
-
-                            // 3 lines
-
-                            textoverlay2 = payload.substring(
-                                    payload.indexOf(",") + 1,
-                                    payload.indexOf(",",
-                                            (payload.indexOf(",") + 1)));
-                            textoverlay3 = payload.substring(
-                                    payload.lastIndexOf(",") + 1);
-                        } else {
-
-                            // two lines
-
-                            line1_ypadding = 4;
-                            line3_ypadding = 13;
-
-                            textoverlay3 = payload.substring(
-                                    payload.indexOf(",") + 1);
-                            textoverlay2 = "";
-
-                        }
-                    } else {
-
-                        // one line in the middle
-                        textoverlay2 = payload;
-
-                        textoverlay1 = "";
-                        textoverlay3 = "";
-                    }
-
-                } // text
-
-                if (cmd == "+text-brightness") // t
-                        {
-                    Serial.println("text-brightness");
-                    Serial.println(payload);
-                    textdimmer = payload.toInt();
-
-                }
-
-                if (cmd == "+anim-brightness") // t
-                        {
-                    Serial.println("anim-brightness");
-                    Serial.println(payload);
-                    animdimmer = payload.toInt();
-
-                }
-
-                if (cmd == "+text-color") // t
-                        {
-                    Serial.println("text-color");
-                    Serial.println(payload);
-                    text_g = payload.substring(0, payload.indexOf(",")).toInt();
-
-                    text_r = payload.substring(payload.indexOf(",") + 1,
-                            payload.lastIndexOf(",")).toInt();
-
-                    text_b =
-                            payload.substring(payload.lastIndexOf(",") + 1).toInt();
-
-                    Serial.print("R: ");
-                    Serial.print(text_r);
-                    Serial.print(" G: ");
-                    Serial.print(text_g);
-                    Serial.print(" B: ");
-                    Serial.println(text_b);
-                }
-
-                if (cmd == "+anim") // "a"
-                        {
-
-                    // only play that one specific animation
-                    loop_animations = 0;
-                    //current_animation_index=0;
-
-                    Serial.println("animation!");
-                    Serial.println(payload);
-
-                    for (int i = 0; i < 13; i++)
-                        animation[i] = 0;
-
-                    for (int idx = 0; idx < payload.length(); idx++) {
-                        animation[idx] = payload[idx]; //payload;
-                    }
-
-                    Serial.print("Animation set to: ");
-                    Serial.println(animation);
-
-                    Serial1.println("-anim");
-                    //Serial1.println(animation);
-                    //Serial1.println("- DONE");
-
-                    fixed_anim_playing = 1;
-
-                }
-
-                //bluestring="";
-
-            } // end of line
-            else
-                // middle of line append
-                bluestring += (char) inchar;
-
-        } // end while Serial1.available
+        handle_serial_data();
 
     } // end if Serial1 available
 
     if (animation != 0) {
-
         sdfile = SD.open(animation); // hier muss i hin
 
         if (sdfile) {
@@ -299,18 +286,18 @@ void loop() {
 
             // read from the file until there's nothing else in it:
             while (sdfile.available()) {
-
+                // Quit playing the animation if serial data is incoming
                 if (Serial1.available()) {
-                    sdfile.close();
-                    return;
+                    if (handle_serial_data() == SERIAL_RELOAD_ANIMATION) {
+                        sdfile.close();
+                        return;
+                    }
                 }
 
                 // find start of frame
-                int c_b = 0;
-                c_b = sdfile.read();
+                int c_b = sdfile.read();
 
                 if (c_b == 1) {
-
                     for (int j = 0; j < total_leds; j++) {
                         int r, g, b = 0;
 
@@ -370,16 +357,8 @@ void loop() {
     return;
 } // loop() close
 
-// hacky hack implements blocking read() from Uart.
-int SerialReadBlocking() {
-    while (!Serial.available()) {
-    }
-    return Serial.read(); // one byte
-
-}
 
 // for list of files over bluetooth
-
 void printDirectory(File dir) {
     while (true) {
 
@@ -396,11 +375,11 @@ void printDirectory(File dir) {
 
 /*  blinkenschild functions */
 
-//  TODO same funtion with 3 parameters as rgb (uint32_t)
+// setXY sets a pixel at position x/y to the values (r, g, b)
 // accepts   x = 1 .. max(cols)
 // accepts   y = 1 .. max(rows)
+//  TODO same funtion with 3 parameters as rgb (uint32_t)
 void setXY(int x, int y, int r, int g, int b) {
-
     // the shield starts BOTTOM RIGHT not top left!
 
     // this would be ok for top left
@@ -411,9 +390,9 @@ void setXY(int x, int y, int r, int g, int b) {
 
     // set value
     leds.setPixel(pxl_table[pos], r, g, b);
-
 }
 
+// Reset all pixels to 0
 void erase() {
     for (int i = 0; i < total_leds; i++)
         leds.setPixel(i, 0);
