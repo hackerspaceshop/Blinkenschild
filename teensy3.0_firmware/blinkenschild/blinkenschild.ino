@@ -19,7 +19,7 @@ int current_animation_index=0;
 
 // names of the animation file
 String bluestring= "";   // bluetooth receive
-char animation[13];   // used for SD open
+char animation[13]="0";   // used for SD open
 
 
 // is a fixed animation playing? choosen over BT ?
@@ -152,68 +152,35 @@ return;
 
 int delim = 0xD; // newline
 int inchar; // current char read
-int cmd; // current command over bluetooth
+String cmd; // current command over bluetooth
 String payload; // current payload of command
+String textoverlay1 ="";
+String textoverlay2 ="";
+String textoverlay3 ="";
 
-
-
-
+// global for font color
+int text_r=0;
+int text_g=0;
+int text_b=0;
 
 
 void loop() {
-
+/*
   
-  /*
-
-    erase();
-  //setXY testcode
-  for(int y=0; y<7; y++)
-  {
-   for(int x=0; x<5; x++)
-   { 
-    if(font_small[0][(y*5)+x]) 
-    {      
-       setXY(x+1,y+1,100,100,0);
-    }
-   }
-  }  
-   leds.show();
-
-
-
-delay(1000);
-  erase();
+  String hurra="wtf";
   
   
-    //setXY testcode
-  for(int y=0; y<7; y++)
-  {
-   for(int x=0; x<5; x++)
-   { 
-    if(font_small[1][(y*5)+x]) 
-    {      
-       setXY(x+1,y+1,100,100,0);
-    }
-   }
-  }  
-   leds.show();
-
-
-
-delay(1000);
-
-
   
+  drawText(hurra,0,0);
+  drawText(hurra,0,8);
+  drawText(hurra,0,16);
   
   return;
-  */
   
+ */ 
   
+ /*
   
-  
-  
- 
-  /*
  // TESTCODE for serial
   
 // 0x01  head of frame..
@@ -243,10 +210,9 @@ delay(1000);
 
  return;
 
-*/
 
-  
-  
+
+  */
   
 
   
@@ -260,6 +226,9 @@ c:list = get list of files
 a:<animname.tek> = choose animation <name>
 t:text
 */
+
+
+
 
 
 
@@ -284,27 +253,30 @@ if(Serial1.available())
  while(Serial1.available())
  {
   inchar=  Serial1.read(); 
-  // ENTER auf screen = 0xD  
-  
-  
+
   Serial.print("0x");;  
   Serial.print(inchar,HEX);
   Serial.print(" ");   
   
   
-  if(inchar ==0xD)
+  
+  //  CR LF, ...
+  if((inchar == 0xD) || (inchar == 0xA) )
   {
     Serial.print("got a line: ");
     Serial.println(bluestring);
     
-    cmd=bluestring[0];
-    payload=bluestring.substring(2,bluestring.length());
     
+    
+    
+    cmd=bluestring.substring(0,bluestring.indexOf(":"));
+    payload=bluestring.substring(bluestring.indexOf(":")+1);
+    bluestring=bluestring.substring(cmd.length() + payload.length() + 2);
     
   
 
     Serial.print("instruction: ");
-    Serial.println(cmd,HEX);
+    Serial.println(cmd);
     
 
    // Serial.print("payload: ");
@@ -312,39 +284,110 @@ if(Serial1.available())
 
 
 
-    if(cmd == 0x63)  // c (command)
+    if(cmd == "+list")  // c (command)
     {
       Serial.println("command");
-      Serial.println(payload);  
-      if(payload=="list")
-      {
-       Serial.println("Listing files on card"); 
+      Serial.println(payload); 
+      
+      Serial.println("Listing files on card"); 
 
        for(int i=0;i<animcounter;i++)
        {
-         Serial1.print("+ ");
+         Serial1.print("+list:");
          Serial1.println(animation_list[i]);
        }
 
 
-       Serial1.println("- DONE");
-      }
-      
+       Serial1.println("-list"); 
     }
 
 
     
-    if(cmd == 0x74)  // t
+    if(cmd == "+text")  // t
     {
-      Serial.println("we got text (1 line)");
+      Serial.println("we got text");
       Serial.println(payload);      
      // TODO is there a special char (;) in the text? then we would linewrap  an set multiple text values..
+     
+     
+     if(payload.indexOf(",") != -1)
+     {
+       textoverlay1=payload.substring(0,payload.indexOf(";"));
+   
+   
+   
+   
+   
+   
+       if(payload.indexOf(",", (payload.indexOf(",")+1)) != -1) 
+       {
+         textoverlay2=payload.substring(payload.indexOf(",")+1, payload.indexOf(",", (payload.indexOf(",")+1)) );
+         textoverlay3=payload.substring(payload.lastIndexOf(",")+1);
+       }  
+       else
+       {
+         textoverlay3=payload.substring(payload.indexOf(",")+1);
+         textoverlay2="";
+         
+         
+       }
+     }
+     else
+     {
+      textoverlay2=payload;
+      
+      textoverlay1="";
+      textoverlay3="";
+     }
+  
+     
+     
+
+     
+     
+     
+     
+     
+     
+    
+     
+     
     }
+    
+    
+    
+    
+    
+    if(cmd == "+text-color")  // t
+    {
+      Serial.println("text-color");
+      Serial.println(payload);      
+     text_g=payload.substring(0,payload.indexOf(",")).toInt();   
+   
+   
+   
+     
+     text_r=payload.substring(payload.indexOf(",")+1,payload.lastIndexOf(",")).toInt(); 
+  
+  
+     
+     text_b=payload.substring(payload.lastIndexOf(",")+1).toInt();         
+     
+     
+     
+     Serial.print("R: ");
+     Serial.print(text_r); 
+      Serial.print(" G: ");
+     Serial.print(text_g); 
+      Serial.print(" B: ");
+     Serial.println(text_b);     
+    }
+    
     
     
   
             
-    if(cmd == 0x61) // "a"
+    if(cmd == "+anim") // "a"
     {
       
       
@@ -369,9 +412,9 @@ if(Serial1.available())
       
       
       
-      Serial1.print("+ ANIMATION SET TO: ");
-      Serial1.println(animation);
-      Serial1.println("- DONE");     
+      Serial1.println("-anim");
+      //Serial1.println(animation);
+      //Serial1.println("- DONE");     
       
       
       fixed_anim_playing=1;
@@ -383,7 +426,7 @@ if(Serial1.available())
             
     
     
-    bluestring="";
+    //bluestring="";
   
   } // end of line
   else // middle of line append
@@ -440,7 +483,8 @@ if(Serial1.available())
   }  
       
     */  
-  
+  if(animation != 0)
+  {
     
   sdfile = SD.open(animation); // hier muss i hin
   
@@ -484,6 +528,27 @@ if(Serial1.available())
 
 
 
+if(textoverlay1 !="" ) 
+{
+ drawText(textoverlay1,0);  
+}
+
+
+if(textoverlay2 !="" ) 
+{
+ drawText(textoverlay2,8);  
+}
+
+
+
+if(textoverlay3 !="" ) 
+{
+ drawText(textoverlay3,16);  
+}
+
+
+
+
 
        leds.show();  
       // delay(10000);
@@ -502,6 +567,12 @@ if(Serial1.available())
     Serial.print("Closed file : ");
     Serial.println(animation);
 
+
+
+
+  } // if animation != ""
+  
+  
 } else {
      // if the file didn't open, print an error:
     Serial.print("error opening file:");
@@ -509,6 +580,13 @@ if(Serial1.available())
     delay(1000);
   }
   
+
+
+
+
+
+
+
 
     
 return;
@@ -636,5 +714,140 @@ void erase()
   for(int i=0;i<total_leds;i++)
     leds.setPixel(i,0);
 }
+
+
+
+
+
+
+
+
+void drawText(String displaytext, int offset_y)
+{
+ 
+  
+  int offset_x=0;
+  
+ // string testcode
+// displaytext="abc xx"; 
+  
+displaytext.toUpperCase();
+  
+ 
+  
+  
+//int offset_x=0;  
+//int offset_y=0;    
+
+int stringwidth=0;
+  
+  
+// find total stringlength  
+for(int j=0;j<displaytext.length();j++)
+{
+
+  int charindex = 26;  // SPACE is default
+  int charnum = (int) displaytext[j];
+  
+  if(charnum >=65  && charnum <=90)
+  {
+     charindex = charnum-65;  
+  }
+  
+
+  int charwidth = font_small_lookup[charindex];
+  stringwidth = stringwidth + charwidth+1;
+  offset_x =(40-stringwidth)/2;
+   
+  
+}  
+
+    
+    stringwidth =0;
+    
+    
+    //  render tht text
+    
+ for(int j=0;j<displaytext.length();j++)
+{
+
+  int charindex = 26;  // SPACE is default
+  int charnum = (int) displaytext[j];
+  
+  if(charnum >=65  && charnum <=90)
+  {
+     charindex = charnum-65;  
+  }
+  
+
+  int charwidth = font_small_lookup[charindex];
+
+       
+    
+    
+  
+ // Serial.print(displaytext[j]);  
+ // Serial.print(" ");
+//  Serial.print(charnum);  
+//  Serial.print(" ");      
+//  Serial.println(charindex);  
+  
+  
+  
+
+  
+  //  erase();
+  //setXY testcode
+  
+
+  for(int y=0; y< 8 ; y++)
+  {
+   for(int x=0; x<charwidth; x++)
+   { 
+    if(font_small[charindex][(y*charwidth)+x]) 
+    {      
+       setXY(x+1+offset_x+stringwidth,y+1+offset_y,text_r,text_g,text_b);
+    }
+   }
+  }  
+  
+  
+  stringwidth = stringwidth + charwidth+1;
+  //offset_x=offset_x+stringwidth; 
+  
+  
+  // leds.show();
+
+ 
+
+
+
+
+//delay(400);
+
+
+}
+
+
+  
+
+
+  
+  
+  return;
+  
+  
+   
+  
+}
+
+
+
+
+
+
+
+
+
 
 
