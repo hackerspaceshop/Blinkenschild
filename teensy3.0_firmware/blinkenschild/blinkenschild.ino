@@ -175,6 +175,11 @@ int animdimmer=1;
 int textdimmer=1;
 
 
+
+int line1_ypadding = 0;
+int line3_ypadding = 16;
+
+
 void loop() {
 /*
   
@@ -321,6 +326,11 @@ if(Serial1.available())
      // TODO is there a special char (;) in the text? then we would linewrap  an set multiple text values..
      
      
+     
+      line1_ypadding = 0;
+     line3_ypadding = 16;
+     
+     
      if(payload.indexOf(",") != -1)
      {
        textoverlay1=payload.substring(0,payload.indexOf(","));
@@ -342,6 +352,11 @@ if(Serial1.available())
        {
          
          // two lines
+         
+         
+         line1_ypadding = 4;
+         line3_ypadding = 13;
+         
          
          textoverlay3=payload.substring(payload.indexOf(",")+1);
          textoverlay2="";
@@ -582,7 +597,7 @@ if(Serial1.available())
 
 if(textoverlay1 !="" ) 
 {
- drawText(textoverlay1,0);  
+ drawText(textoverlay1,line1_ypadding);  
 }
 
 
@@ -595,7 +610,7 @@ if(textoverlay2 !="" )
 
 if(textoverlay3 !="" ) 
 {
- drawText(textoverlay3,16);  
+ drawText(textoverlay3,line3_ypadding);  
 }
 
 
@@ -776,7 +791,12 @@ void erase()
 
 void drawText(String displaytext, int offset_y)
 {
- 
+ /*
+  Serial.print("drawtext: ");
+  Serial.print(displaytext);  
+  Serial.print(" offset: ");
+  Serial.println(offset_y);  
+  */
   
   int offset_x=0;
   
